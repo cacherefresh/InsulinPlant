@@ -34,8 +34,9 @@ jobs:
       - run: flutter pub get
       - run: flutter analyze
       - run: flutter test
-      # Pages serves project sites from /<repo-name>/, so the base href must match.
-      - run: flutter build web --release --base-href "/${{ github.event.repository.name }}/"
+      # Served at the root of the custom domain insulinplant.cacherefresh.io
+      # (set in Settings → Pages), so the base href is "/".
+      - run: flutter build web --release --base-href /
       - if: github.event_name == 'push' && github.ref == 'refs/heads/sanctuary'
         uses: actions/upload-pages-artifact@v3
         with:

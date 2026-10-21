@@ -30,13 +30,13 @@ anyone can read it, because they can.
 |---|---|
 | Push to `feature/**` | Analyze, test, build |
 | Pull request into `sanctuary` | Analyze, test, build (must pass before merge) |
-| Merge into `sanctuary` | Analyze, test, build, then deploy to GitHub Pages |
+| Merge into `sanctuary` | Analyze, test, build, then deploy to GitHub Pages at https://insulinplant.cacherefresh.io |
 
 **Run the same checks locally before committing:**
 ```sh
 flutter analyze
 flutter test
-flutter build web --release --base-href /InsulinPlant/
+flutter build web --release --base-href /
 ```
 `flutter test` renders every tab and every pitch slide at phone width (360 px) and
 fails on layout overflow. Don't commit with it red.

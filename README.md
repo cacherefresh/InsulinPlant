@@ -51,7 +51,8 @@ Phone layout: Chrome DevTools → Toggle device toolbar (⌘⇧M) → pick an iP
 | Pull request into `sanctuary` | Analyze, test, build. The result shows on the PR |
 | Merge into `sanctuary` | Analyze, test, build, then **deploy to GitHub Pages** |
 
-The site is at `https://cacherefresh.github.io/InsulinPlant/`.
+The site is at **https://insulinplant.cacherefresh.io** (custom domain: a GoDaddy CNAME
+`insulinplant` → `cacherefresh.github.io`, set as the custom domain in Settings → Pages).
 
 One-time setup on github.com/cacherefresh/InsulinPlant:
 
@@ -61,4 +62,6 @@ One-time setup on github.com/cacherefresh/InsulinPlant:
    status checks to pass**, then pick **Analyze, test, build**. A PR can't merge
    until its build passes. The check only appears in the list after it has run once.
 
-To build by hand: `flutter build web --release --base-href /<repo-name>/`
+To build by hand: `flutter build web --release --base-href /`. The site is served from the
+domain root, so the base href is `/`. If the custom domain is ever removed, it becomes
+`/InsulinPlant/` again.
