@@ -1,23 +1,28 @@
-# Builds the web app and publishes it to GitHub Pages on every push to sanctuary.
+# One workflow, two jobs:
+#   build  → every pull request into sanctuary and every push to a feature
+#            branch: analyze, test, and build the web app.
+#   deploy → only after a merge (push) to sanctuary: publish to GitHub Pages.
 # One-time setup: repo Settings → Pages → Source: "GitHub Actions".
-name: Deploy to GitHub Pages
+name: CI and deploy
 
 on:
-  push:
+  pull_request:
     branches: [sanctuary]
+  push:
+    branches: [sanctuary, 'feature/**']
   workflow_dispatch:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
-  group: pages
-  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.ref }}
+  # Cancel superseded feature/PR runs; never cancel a deploy mid-flight.
+  cancel-in-progress: ${{ github.ref != 'refs/heads/sanctuary' }}
 
 jobs:
   build:
+    name: Analyze, test, build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -25,18 +30,25 @@ jobs:
         with:
           flutter-version: 3.44.8
           channel: stable
+          cache: true
       - run: flutter pub get
       - run: flutter analyze
       - run: flutter test
       # Pages serves project sites from /<repo-name>/, so the base href must match.
       - run: flutter build web --release --base-href "/${{ github.event.repository.name }}/"
-      - uses: actions/upload-pages-artifact@v3
+      - if: github.event_name == 'push' && github.ref == 'refs/heads/sanctuary'
+        uses: actions/upload-pages-artifact@v3
         with:
           path: build/web
 
   deploy:
+    name: Deploy to GitHub Pages
     needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/sanctuary'
     runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
