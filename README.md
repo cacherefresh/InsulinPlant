@@ -41,11 +41,27 @@ Phone layout: Chrome DevTools → Toggle device toolbar (⌘⇧M) → pick an iP
 - **Pitch slides:** `pitch_deck/*.md` (format in `pitch_deck/README.md`)
 - **My placeholders:** search for `RobPlaceholder` and replace each with real text.
 
-### Deploy to GitHub Pages
+### Build checks and deploy (GitHub Actions)
 
-1. Merge into `sanctuary` (the default branch) on github.com/cacherefresh/InsulinPlant.
-2. In the repo, go to **Settings → Pages → Source** and choose **GitHub Actions**.
-3. `.github/workflows/deploy.yml` builds and publishes on every push to `sanctuary`.
-   The site will be at `https://cacherefresh.github.io/InsulinPlant/`.
+`.github/workflows/ci_deploy.yml` does both:
 
-To build by hand: `flutter build web --release --base-href /<repo-name>/`
+| When | What runs |
+|---|---|
+| Push to any `feature/**` branch | Analyze, test, build |
+| Pull request into `sanctuary` | Analyze, test, build. The result shows on the PR |
+| Merge into `sanctuary` | Analyze, test, build, then **deploy to GitHub Pages** |
+
+The site is at **https://insulinplant.cacherefresh.io** (custom domain: a GoDaddy CNAME
+`insulinplant` → `cacherefresh.github.io`, set as the custom domain in Settings → Pages).
+
+One-time setup on github.com/cacherefresh/InsulinPlant:
+
+1. **Settings → Pages → Source:** choose **GitHub Actions**.
+2. **Settings → Branches → Add branch protection rule** (or Rules → Rulesets) for
+   `sanctuary`: turn on **Require a pull request before merging** and **Require
+   status checks to pass**, then pick **Analyze, test, build**. A PR can't merge
+   until its build passes. The check only appears in the list after it has run once.
+
+To build by hand: `flutter build web --release --base-href /`. The site is served from the
+domain root, so the base href is `/`. If the custom domain is ever removed, it becomes
+`/InsulinPlant/` again.

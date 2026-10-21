@@ -1,0 +1,58 @@
+# One workflow, two jobs:
+#   build  → every pull request into sanctuary and every push to a feature
+#            branch: analyze, test, and build the web app.
+#   deploy → only after a merge (push) to sanctuary: publish to GitHub Pages.
+# One-time setup: repo Settings → Pages → Source: "GitHub Actions".
+name: CI and deploy
+
+on:
+  pull_request:
+    branches: [sanctuary]
+  push:
+    branches: [sanctuary, 'feature/**']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  # Cancel superseded feature/PR runs; never cancel a deploy mid-flight.
+  cancel-in-progress: ${{ github.ref != 'refs/heads/sanctuary' }}
+
+jobs:
+  build:
+    name: Analyze, test, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.44.8
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test
+      # Served at the root of the custom domain insulinplant.cacherefresh.io
+      # (set in Settings → Pages), so the base href is "/".
+      - run: flutter build web --release --base-href /
+      - if: github.event_name == 'push' && github.ref == 'refs/heads/sanctuary'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/sanctuary'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
